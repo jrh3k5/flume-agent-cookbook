@@ -1,0 +1,133 @@
+#!/bin/bash
+#
+#   /etc/rc.d/init.d/flume_<%= @attributes["instanceName"] %>.sh
+#
+#   Management script for a Flume agent by the name of <%= @attributes["instanceName"] %>.
+
+# NOTE: The following two lines are used for (un)installation via the "chkconfig" utility available on some systems, most notably Red Hat.
+# chkconfig: 2345 20 80
+# description: Management script for a Flume agent by the name of <%= @attributes["instanceName"] %>.
+
+if [ -z "$JAVA_HOME" ]; then
+    export JAVA_HOME="/usr/java/default/"
+fi
+
+FLUME_HOME=<%= @attributes["installDir"] %>
+FLUME_BIN=bin/flume-ng
+FLUME_AGENT_NAME=<%= @attributes["instanceName"] %>
+SERVICE_NAME="<%= @attributes["serviceName"] %>"
+PID_FILE=/var/run/$SERVICE_NAME
+LOCK_FILE=/var/lock/subsys/$SERVICE_NAME
+AGENT_USER=<%= @attributes["userName"] %>
+PGREP_COMMAND="pgrep -f $FLUME_HOME/conf"
+
+start() {
+    echo -n "Starting $SERVICE_NAME: "
+    agentRunning
+    RUNNING=$?
+    if [ $RUNNING -eq 1 ]; then
+        echo "The Flume agent $SERVICE_NAME is already running; stop it before attempting to start a new agent process."
+        return 1
+    fi
+
+    su -l $AGENT_USER -c "cd $FLUME_HOME;$FLUME_BIN agent -n $FLUME_AGENT_NAME -c conf -f <%= @attributes["outputConfigurationFile"] %> &"
+    PIDS=`$PGREP_COMMAND`
+    if [ -z "$PIDS" ]; then
+        echo "Failed to start Flume agent. Examine the logs at $FLUME_HOME/logs/flume.log for more information."
+        return 1
+    else
+        # Make sure the agent is actually running
+        echo "started ($PIDS)"
+        echo $PIDS > $PID_FILE
+        touch $LOCK_FILE
+        agentRunning
+        RUNNING=$?
+        if [ $RUNNING -eq 0 ]; then
+            echo "Although the process was successfully invoked, the agent failed to start properly. Examine the logs at $FLUME_HOME/logs/flume.log for more information."
+            return 1
+        fi
+        return 0
+    fi
+}
+
+stop() {
+    echo "Stopping $SERVICE_NAME: "
+    RETVAL=0
+    agentRunning
+    RUNNING=$?
+    if [ $RUNNING -eq 1 ]; then
+        PID=`head -1 $PID_FILE`
+        kill $PID
+        RETVAL=$?
+        # Wait for either the process to end or for it to be a zombie process
+        while [[ $RUNNING -eq 1 ]]; do
+            sleep 1
+            agentRunning
+            RUNNING=$?
+        done
+        echo "Stopped PID $PID"
+    else
+        echo "There is no known service to stop."
+    fi
+    rm -f $LOCK_FILE
+    echo "Service $SERVICE_NAME stopped."
+    return $RETVAL
+}
+
+status() {
+    agentRunning
+    RUNNING=$?
+    if [ $RUNNING -eq 1 ]; then
+        echo "Agent is running"
+        return 0
+    else
+        echo "Agent is not running or cannot be determined to be running"
+        return 1
+    fi
+}
+
+agentRunning() {
+    if [ ! -e $PID_FILE ]; then
+        echo "The PID file $PID_FILE was not found; the agent is assumed to not be running"
+        return 0
+    fi
+    PID=`head -1 $PID_FILE`
+    if [[ -d /proc/$PID ]]; then
+        if [[ -n `grep zombie /proc/$PID/status` ]]; then
+            echo "Warning! A zombie process was detected for $PID"
+        fi
+        return 1
+    else
+        # It's possible that the Flume agent was started outside of this script, which means that the agent cannot be started
+        pids=()
+        for pid in `$PGREP_COMMAND`
+        do
+            pids+=("$pid")
+        done
+        if [ ${#pids[@]} -gt 0 ]; then
+            echo "An instance of the Flume agent that is not being tracked by this script was found."
+            return 1
+        fi
+    fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+        ;;
+    restart|reload|condrestart)
+        stop
+        start
+        ;;
+    *)
+    echo "Usage: <servicename> {start|stop|status|restart}"
+    exit 1
+    ;;
+esac
+exit $?
