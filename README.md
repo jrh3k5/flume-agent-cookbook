@@ -81,11 +81,11 @@ At minimum, one of the following sources must be provided:
 * **cookbook_filename**: The name of a cookbook file that will be copied as the .tar.gz file.
     * Optionally, the **cookbook** parameter can be specified here to identify which cookbook the file should be copied. If not specified, it will be the name of the cookbook calling the provider.
 
-The expected format follows:
+The expected format of the provided Flume plugin bundle follows:
 
     my-project-1.0-my-plugin-flume-plugin.tar.gz
       |
-      +- my-plugin
+      +- name-of-my-plugin
           |
           +- lib/
           |   |
