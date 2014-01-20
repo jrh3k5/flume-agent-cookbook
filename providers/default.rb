@@ -36,8 +36,7 @@ action :create do
   # Add the Flume agent as a service
   template "/etc/init.d/#{attributes["serviceName"]}" do
     source "flume-agent.sh.erb"
-    # Injected by Maven
-    cookbook "${cookbookName}"
+    cookbook "flume_agent"
     mode "0755"
     variables(:attributes => attributes)
     backup false
@@ -113,8 +112,7 @@ action :create do
   template ::File.join(attributes["flumeConfDir"], "flume-env.sh") do
     action :create
     source "flume-env.sh.erb"
-    # Injected by Maven
-    cookbook "${cookbookName}"
+    cookbook "flume_agent"
     owner attributes["userName"]
     group attributes["userGroup"]
     mode "0700"
