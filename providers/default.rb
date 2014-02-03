@@ -257,6 +257,7 @@ action :create do
           
           FileUtils.mv foundPath, pluginDir
         end
+        not_if { ::File.exist?(pluginDir) }
       end
     end
   end
