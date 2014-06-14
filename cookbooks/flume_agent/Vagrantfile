@@ -1,0 +1,28 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos6.5-1.0"
+  config.vm.hostname = "centos65"
+  config.vm.box_url = "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_centos-6.5_chef-provisionerless.box"
+  config.omnibus.chef_version = "10.28.0"
+  config.berkshelf.enabled = true
+
+  config.vm.provision :shell, :inline => "mkdir -p /var/chef/cache"
+
+  config.vm.provision :chef_solo do |chef|
+    chef.log_level = :debug
+    chef.run_list = [
+      "recipe[java::default]",
+      "recipe[test_flume_consumer::default]",
+      "minitest-handler::default"
+    ]
+
+    chef.json = {
+      "java" => {
+        "install_flavor" => "oracle",
+        "jdk_version" => "7",
+        "oracle" => {
+          "accept_oracle_download_terms" => true
+        }
+      }
+    }
+  end
+end

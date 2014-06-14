@@ -1,0 +1,19 @@
+first_agent.sources = http_source
+first_agent.sinks = events_sink registrations_sink
+first_agent.channels = file_channel
+
+# Initialize the channel
+first_agent.channels.file_channel.type = file
+first_agent.channels.file_channel.checkpointDir = /home/flume/first_agent/channels/file/checkpoint
+first_agent.channels.file_channel.dataDirs = /home/flume/first_agent/channels/file/data
+first_agent.channels.file_channel.capacity = 10000
+first_agent.channels.file_channel.transactionCapacity = 1000
+
+# Configure the source
+first_agent.sources.http_source.type = http
+first_agent.sources.http_source.port = 5140
+first_agent.sources.http_source.channels = file_channel
+
+# Configure the sink
+first_agent.sinks.logger_sink.type = logger
+first_agent.sinks.logger_sink.channel = file_channel
