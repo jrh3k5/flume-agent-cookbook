@@ -94,8 +94,6 @@ action :create do
     # We're about to deploy a potentially new configuration
     # Flume will attempt to dynamically cycle the agent while we are restarting it, and this can cause issues
     notifies :stop, "service[#{attributes["serviceName"]}]", :immediately
-    # Restart the agent at the end of the provider execution
-    notifies :restart, "service[#{attributes["serviceName"]}]"
   end
   
   # Make sure the appropriate user owns the Flume installation
@@ -275,6 +273,14 @@ action :create do
   service attributes["serviceName"] do
     supports :start => true, :stop => true, :restart => true, :status => true
     action [ :enable ]
+  end
+  
+  # Chef seems to occasionally ignore the status and assume that a Flume agent is running - bypass the service resource and shell it out
+  bash "Restart #{attributes["serviceName"]}" do
+    user "root"
+    code <<-EOH
+      service #{attributes["serviceName"]} restart
+    EOH
   end
 end
 
