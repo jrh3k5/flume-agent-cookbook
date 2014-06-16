@@ -109,11 +109,20 @@ agentRunning() {
         pids=()
         for pid in `$PGREP_COMMAND`
         do
-            pids+=("$pid")
+            if [[ -d proc/$pid ]]; then
+                echo "PID $pid was found to be running"
+                pids+=("$pid")
+            else
+                echo "PID $pid was found in the PID file, but is not running"
+            fi
         done
-        if [ ${#pids[@]} -gt 0 ]; then
+        if [ ${#pids[@]} -ne 1 ]; then
             echo "An instance of the Flume agent (see: $PID_FILE) that is not being tracked by this script was found."
             return 4
+        else
+            echo "Multiple PIDs were found in the $PID_FILE, but only one (${pids[0]}) was found to still be running"
+            echo ${pids[0]} > $PID_FILE
+            return 0
         fi
 
         # The /var/run file exists, but the process isn't actually running
