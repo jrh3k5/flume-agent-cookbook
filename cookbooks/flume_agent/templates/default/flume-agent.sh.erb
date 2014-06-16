@@ -25,7 +25,7 @@ start() {
     echo -n "Starting $SERVICE_NAME: "
     agentRunning
     RUNNING=$?
-    if [ $RUNNING -eq 1 ]; then
+    if [ $RUNNING -eq 0 ]; then
         echo "The Flume agent $SERVICE_NAME is already running; stop it before attempting to start a new agent process."
         return 1
     fi
@@ -42,8 +42,8 @@ start() {
         touch $LOCK_FILE
         agentRunning
         RUNNING=$?
-        if [ $RUNNING -eq 0 ]; then
-            echo "Although the process was successfully invoked, the agent failed to start properly. Examine the logs at $FLUME_HOME/logs/flume.log for more information."
+        if [ $RUNNING -gt 0 ]; then
+            echo "Although the process was successfully invoked, the agent failed to start properly (status code $RUNNING). Examine the logs at $FLUME_HOME/logs/flume.log for more information."
             return 1
         fi
         return 0
@@ -55,12 +55,12 @@ stop() {
     RETVAL=0
     agentRunning
     RUNNING=$?
-    if [ $RUNNING -eq 1 ]; then
+    if [ $RUNNING -eq 0 ]; then
         PID=`head -1 $PID_FILE`
         kill $PID
         RETVAL=$?
         # Wait for either the process to end or for it to be a zombie process
-        while [[ $RUNNING -eq 1 ]]; do
+        while [[ $RUNNING -eq 0 ]]; do
             sleep 1
             agentRunning
             RUNNING=$?
@@ -77,26 +77,33 @@ stop() {
 status() {
     agentRunning
     RUNNING=$?
-    if [ $RUNNING -eq 1 ]; then
+    if [ $RUNNING -eq 0 ]; then
         echo "Agent is running"
-        return 0
     else
-        echo "Agent is not running or cannot be determined to be running"
-        return 1
+        echo "Agent is not running or cannot be determined to be running (status code: $RUNNING)"
     fi
+
+    return $RUNNING
 }
 
+# Check to see if the agent is running
+#
+# Returns (per http://refspecs.linuxbase.org/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptact.html):
+# - 0: the service is running and OK
+# - 1: the service is not running, but the /var/run PID file exists
+# - 3: the service is not running
+# - 4: the status of the service cannot be determined
 agentRunning() {
     if [ ! -e $PID_FILE ]; then
         echo "The PID file $PID_FILE was not found; the agent is assumed to not be running"
-        return 0
+        return 3
     fi
     PID=`head -1 $PID_FILE`
     if [[ -d /proc/$PID ]]; then
         if [[ -n `grep zombie /proc/$PID/status` ]]; then
             echo "Warning! A zombie process was detected for $PID"
         fi
-        return 1
+        return 0
     else
         # It's possible that the Flume agent was started outside of this script, which means that the agent cannot be started
         pids=()
@@ -105,12 +112,13 @@ agentRunning() {
             pids+=("$pid")
         done
         if [ ${#pids[@]} -gt 0 ]; then
-            echo "An instance of the Flume agent that is not being tracked by this script was found."
-            return 1
+            echo "An instance of the Flume agent (see: $PID_FILE) that is not being tracked by this script was found."
+            return 4
         fi
+
+        # The /var/run file exists, but the process isn't actually running
+        return 3
     fi
-    
-    return 0
 }
 
 case "$1" in
@@ -132,4 +140,5 @@ case "$1" in
     exit 1
     ;;
 esac
+
 exit $?
