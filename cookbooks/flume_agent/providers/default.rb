@@ -85,6 +85,7 @@ action :create do
     # Untar the archive and then move it to the final location
     code <<-EOH
      tar zxf #{Chef::Config[:file_cache_path]}/#{tarFilename}
+     rm -rf #{attributes["installDir"]}/*
      mv #{tarBasename}/* #{attributes["installDir"]}
      rm -rf #{tarBasename}
     EOH
