@@ -1,9 +1,6 @@
 # Description
 Provides a mechanism for installing a Flume agent.
 
-# Requirements
-This requires an installation of Java 6 or higher.
-
 # Providers
 
 The following are a list of provided actions supplied by this cookbook.
