@@ -8,15 +8,21 @@ end
 
 actions :create
 
-attribute :userName, :kind_of => String
-attribute :userGroup, :kind_of => String
-attribute :agentName, :kind_of => String
+attribute :userName,            :kind_of => String
+attribute :userGroup,           :kind_of => String
+attribute :agentName,           :kind_of => String
 
 attr_reader :agentConfigFile
 attr_reader :flumePlugins
 attr_reader :loggingProps
 attr_reader :flumeEnvSh
 attr_reader :jmxProps
+attr_reader :agentPostStartupScript
+
+@@POST_START_SCRIPT_ATTRIBUTES = ["cookbook_filename", "cookbook", "variables"]
+def postStartupScript(&block)
+  @agentPostStartupScript = BlockHash.new(@@POST_START_SCRIPT_ATTRIBUTES, &block)
+end
 
 @@AGENT_CONFIG_FILE_ATTRIBUTES = ["cookbook_filename", "cookbook", "variables"]
   

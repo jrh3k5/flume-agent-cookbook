@@ -19,6 +19,7 @@ action :create do
   attributes["installDir"] = "#{attributes["baseDir"]}/#{attributes["instanceName"]}"
   attributes["flumeConfDir"] = "#{attributes["installDir"]}/conf"
   attributes["outputConfigurationFile"] = "#{attributes["flumeConfDir"]}/flume.agent.#{attributes["instanceName"]}.properties"
+  attributes["postStartupScript"] = new_resource.agentPostStartupScript
 
   if !ENV["JAVA_HOME"]
     raise Exception.new("JAVA_HOME environment variable not found - has Java been previously installed?")
@@ -108,7 +109,7 @@ action :create do
     template agentShellScript do
       action :create
       source attributes["flumeEnv"]["cookbook_filename"]
-      cookbook attributes["flumeEnv"]["cookbook"] ? attributes["flumeEnv"]["cookbook"] : new_resource.cookbook_name
+      cookbook attributes["flumeEnv"]["cookbook"] ? attributes["flumeEnv"]["cookbook"] : new_resource.cookbook_name.to_s
       owner attributes["userName"]
       group attributes["userGroup"]
       mode "0700"
@@ -140,7 +141,7 @@ action :create do
   template attributes["outputConfigurationFile"] do
     action :create
     source attributes["agentConfigFile"]["cookbook_filename"]
-    cookbook attributes["agentConfigFile"]["cookbook"] ? attributes["agentConfigFile"]["cookbook"] : new_resource.cookbook_name
+    cookbook attributes["agentConfigFile"]["cookbook"] ? attributes["agentConfigFile"]["cookbook"] : new_resource.cookbook_name.to_s
     owner attributes["userName"]
     group attributes["userGroup"]
     mode "0700"
@@ -153,7 +154,7 @@ action :create do
     loggingProperties = attributes["loggingProperties"]
     template ::File.join(attributes["installDir"], "conf", "log4j.properties") do
       source loggingProperties["cookbook_filename"]
-      cookbook loggingProperties["cookbook"] ? loggingProperties["cookbook"] : new_resource.cookbook_name
+      cookbook loggingProperties["cookbook"] ? loggingProperties["cookbook"] : new_resource.cookbook_name.to_s
       mode "0755"
       variables(loggingProperties["variables"])
       backup false
@@ -180,7 +181,7 @@ action :create do
       pluginTarLocation = nil
       if pluginInfo["cookbook_filename"]
         pluginCookbookFilename = pluginInfo["cookbook_filename"]
-        pluginCookbook = pluginInfo["cookbook"] ? pluginInfo["cookbook"] : new_resource.cookbook_name
+        pluginCookbook = pluginInfo["cookbook"] ? pluginInfo["cookbook"] : new_resource.cookbook_name.to_s
         pluginTarName = ::File.basename(pluginCookbookFilename, ".tar.gz")
         pluginTarLocation = "#{Chef::Config[:file_cache_path]}/#{pluginTarName}.tar.gz"
         if !pluginTarName
@@ -274,6 +275,20 @@ action :create do
   service attributes["serviceName"] do
     supports :start => true, :stop => true, :restart => true, :status => true
     action [ :enable ]
+  end
+  
+  # If the post-startup script has been specified, then copy it
+  if attributes["postStartupScript"]
+    template "Copying post-startup script (#{attributes["postStartupScript"]["cookbook_filename"]})" do
+      source attributes["postStartupScript"]["cookbook_filename"]
+      cookbook attributes["postStartupScript"]["cookbook"] ? attributes["postStartupScript"]["cookbook"] : new_resource.cookbook_name.to_s
+      mode 0700
+      owner attributes["userName"]
+      group attributes["userGroup"]
+      backup false
+      path "#{attributes["installDir"]}/bin/#{attributes["instanceName"]}_startup_hook.sh"
+      variables attributes["postStartupScript"]["variables"]
+    end
   end
   
   # Chef seems to occasionally ignore the status and assume that a Flume agent is running - bypass the service resource and shell it out

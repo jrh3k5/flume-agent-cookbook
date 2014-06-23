@@ -20,6 +20,10 @@ flume_agent "my-agent" do
   userGroup "flume"
   agentName "my-agent"
 
+  postStartupScript do
+    cookbook_filename "startup_hook_script.sh.erb"
+  end
+
   loggingProperties do
     cookbook_filename "flume.log4j.properties.erb"
   end
@@ -95,7 +99,7 @@ The expected format of the provided Flume plugin bundle follows:
               +- a.jar
               +- b.jar
 
-### flumeEnv
+#### flumeEnv
 
 Use this element to provide a <tt>flume-env.sh</tt> file template to be copied into the Flume installation. It takes the following parameters:
 
@@ -103,7 +107,15 @@ Use this element to provide a <tt>flume-env.sh</tt> file template to be copied i
 * **cookbook**: _(optional)_ The name of the cookbook from which the file is to be copied; defaults to the cookbook calling the provider
 * **variables**: _(optional)_ A hash of variables to be provided to the copied logging properties file.
 
-### jmx
+#### postStartupScript
+
+Starting with version 1.0.7 of this cookbook, the provider now provides a hook allowing consumers to specify a shell script to be executed following the startup of the agent. This allows the injection of, for example, the execution of a health check to ensure that the agent is available. It takes the following parameters:
+
+* **cookbook_filename**: The name of the file stored in the cookbook to be copied (as a template)
+* **cookbook**: _(optional)_ The name of the cookbook from which the file is to be copied; defaults to the cookbook calling the provider
+* **variables**: _(optional)_ A hash of variables to be provided to the copied script
+
+#### jmx
 
 This block enables JMX reporting of the behavior of the agent. It takes the following parameter:
 

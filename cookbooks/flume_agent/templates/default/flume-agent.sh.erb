@@ -46,6 +46,13 @@ start() {
             echo "Although the process was successfully invoked, the agent failed to start properly (status code $RUNNING). Examine the logs at $FLUME_HOME/logs/flume.log for more information."
             return 1
         fi
+        <% if @attributes["postStartupScript"] -%>
+        su -l $AGENT_USER -c "$FLUME_HOME/bin/<%= @attributes["instanceName"] %>_startup_hook.sh"
+        if [ $? -ne 0 ]; then
+          echo "The post-startup hook script failed to execute properly."
+          return 1
+        fi
+        <% end -%>
         return 0
     fi
 }

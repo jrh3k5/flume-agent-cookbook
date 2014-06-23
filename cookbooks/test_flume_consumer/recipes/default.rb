@@ -8,6 +8,11 @@ flume_agent "first_agent" do
   userGroup flume_user_group
   agentName "first_agent"
 
+  postStartupScript do
+    cookbook_filename "test_startup_hook.sh.erb"
+    variables("attributes" => { "instanceName" => "first_agent" })
+  end
+
   configFile do
     cookbook_filename "flume.first.properties.erb"
     cookbook "test_flume_consumer"
