@@ -2,4 +2,4 @@ source "https://api.berkshelf.com"
 
 metadata
 
-cookbook "flume", "= 1.0.7", path: "../flume_agent"
+cookbook "flume", "= 1.0.8", path: "../flume_agent"
