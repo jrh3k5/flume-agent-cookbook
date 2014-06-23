@@ -24,6 +24,12 @@ action :create do
   if !ENV["JAVA_HOME"]
     raise Exception.new("JAVA_HOME environment variable not found - has Java been previously installed?")
   end
+  
+  # Read the Flume metadata (or initialize it if it exists)
+  flumeMetadata = readFlumeMetadata attributes["installDir"]
+  if !flumeMetadata
+    flumeMetadata = Hash.new
+  end
 
   #Ensure Flume group and user have been setup
   group attributes["userGroup"] do
@@ -67,6 +73,17 @@ action :create do
       mode "0700"
       recursive true
   end
+
+  tarBasename = ::File.basename(tarFilename, ".tar.gz")
+
+  # If there is a new version of Flume being installed, then delete the old installation
+  if tarBasename != flumeMetadata["flume_version"]
+    directory attributes["installDir"] do
+      action :delete
+      recursive true
+    end
+  end
+  flumeMetadata["flume_version"] = tarBasename
   
   # Make sure that the installation directory exists and has sufficient privileges
   directory attributes["installDir"] do
@@ -76,8 +93,7 @@ action :create do
       mode "0700"
       recursive true
   end
-
-  tarBasename = ::File.basename(tarFilename, ".tar.gz")
+  
   # Install Flume
   bash "Unpack Flume Agent #{attributes["instanceName"]} to #{attributes["installDir"]}" do
     user "root"
@@ -86,7 +102,6 @@ action :create do
     # Untar the archive and then move it to the final location
     code <<-EOH
      tar zxf #{Chef::Config[:file_cache_path]}/#{tarFilename}
-     rm -rf #{attributes["installDir"]}/*
      mv #{tarBasename}/* #{attributes["installDir"]}
      rm -rf #{tarBasename}
     EOH
@@ -290,6 +305,13 @@ action :create do
       variables attributes["postStartupScript"]["variables"]
     end
   end
+
+  # Persist Flume metadata
+  ruby_block "Write Flume metadata" do
+    block do
+      writeFlumeMetadata attributes["installDir"], flumeMetadata
+    end
+  end
   
   # Chef seems to occasionally ignore the status and assume that a Flume agent is running - bypass the service resource and shell it out
   bash "Restart #{attributes["serviceName"]}" do
@@ -303,4 +325,21 @@ end
 # Extract the name (less the file extension) of the GZipped TAR file from the given URI
 def getNameOfTarFileFromURI regex, uri
   regex.match(uri).to_a.first
+end
+
+def readFlumeMetadata installDir
+  jsonFilepath = "#{installDir}/conf/agent_metadata.json"
+  if !::File.exists?(jsonFilepath)
+    return nil
+  end
+  
+  JSON.parse(IO.read(jsonFilepath))
+end
+
+def writeFlumeMetadata installDir, flumeMetadata
+  jsonFilepath = "#{installDir}/conf/agent_metadata.json"
+
+  ::File.open(jsonFilepath,"w") do |file|
+    file.write(flumeMetadata.to_json)
+  end
 end
