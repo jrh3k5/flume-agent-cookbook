@@ -23,4 +23,11 @@ describe_recipe "test_flume_consumer::default" do
     # The script should have been executed
     file("/tmp/flume_first_agent").must_exist
   end
+
+  it "should not have rmLibs" do
+    file("/opt/flume/first_agent/lib/lucene-spatial-4.3.0.jar").wont_exist
+    file("/opt/flume/first_agent/lib/lucene-suggest-4.3.0.jar").wont_exist
+    # Make sure not EVERYTHING got deleted
+    file("/opt/flume/first_agent/lib/metrics-core-3.0.0.jar").must_exist
+  end
 end

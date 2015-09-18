@@ -9,7 +9,7 @@ DEPENDENCIES
 
 GRAPH
   chef_handler (1.2.0)
-  flume_agent (1.0.8)
+  flume_agent (1.1.0)
   java (1.22.0)
   minitest-handler (0.2.1)
     chef_handler (>= 0.0.0)

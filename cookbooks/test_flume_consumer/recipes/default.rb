@@ -8,6 +8,11 @@ flume_agent "first_agent" do
   userGroup flume_user_group
   agentName "first_agent"
 
+  rmLib "lucene-spatial-4.3.0.jar"
+  rmLib "lucene-suggest-4.3.0.jar"
+  # Test that the resource tolerates non-existent libraries
+  rmLib "doesntexistbutthatsokay.jar"
+
   postStartupScript do
     cookbook_filename "test_startup_hook.sh.erb"
     variables("attributes" => { "instanceName" => "first_agent" })
