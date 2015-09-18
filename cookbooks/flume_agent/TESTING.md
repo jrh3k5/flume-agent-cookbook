@@ -3,29 +3,16 @@
 ## Software ##
 The following software has to be installed to enable local testing:
 
-* Maven 3
-* Java 7
 * [VirtualBox](https://www.virtualbox.org/)
-* [Vagrant](http://www.vagrantup.com/) 1.5.4
-* vagrant-berkshelf:
-  
-  ```
-  $ vagrant plugin install vagrant-berkshelf --plugin-version=2.0.1
-  ```
-
-* vagrant-omnibus:
-  
-  ```
-  $ vagrant plugin install vagrant-omnibus --plugin-version=1.4.1
-  ```
-* [Berkshelf](http://berkshelf.com/) (2.0.14)
+* [Vagrant](http://www.vagrantup.com/)
+* [ChefDK](https://downloads.chef.io/chef-dk/)
 
 ## Running Tests ##
 
 Run the tests with:
 
 ```
-vagrant up
+kitchen test
 ```
 
 A successful test run will look something like:
@@ -47,15 +34,15 @@ Finished tests in 0.858888s, 2.3286 tests/s, 3.4929 assertions/s.
 [2014-06-14T22:43:50+00:00] INFO: Report handlers complete
 ```
 
-To establish a connection with the RHEL box created by Vagrant, run:
+To establish a connection with the CentOS box created by Vagrant, run:
 
 ```
-$ vagrant ssh
+$ kitchen login
 $ sudo su - root
 ```
 
 When the testing is completed, clean up the box with:
 
 ```
-$ vagrant destroy -f
+$ kitchen destroy
 ```
