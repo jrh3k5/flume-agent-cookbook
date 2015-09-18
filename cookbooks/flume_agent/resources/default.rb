@@ -4,6 +4,8 @@ def initialize(*args)
   @action = :create
   
   @flumePlugins = Hash.new
+
+  @rmLibs = Array.new
 end
 
 actions :create
@@ -18,6 +20,7 @@ attr_reader :loggingProps
 attr_reader :flumeEnvSh
 attr_reader :jmxProps
 attr_reader :agentPostStartupScript
+attr_reader :rmLibs
 
 @@POST_START_SCRIPT_ATTRIBUTES = ["cookbook_filename", "cookbook", "variables"]
 def postStartupScript(&block)
@@ -56,6 +59,13 @@ end
 
 def jmx(&block)
   @jmxProps = BlockHash.new(@@JMX_ATTRIBUTES, &block)
+end
+
+def rmLib(filename, &block)
+  if !filename or filename.empty?
+    raise "You must provide the filename of the library to be removed"
+  end
+  @rmLibs.push(filename)
 end
 
 # A Hash that takes in a &block to populate itself. It also takes in a list of 'attributes' (you can think of this as a white list)

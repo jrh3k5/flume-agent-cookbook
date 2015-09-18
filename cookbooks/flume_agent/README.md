@@ -41,6 +41,8 @@ flume_agent "my-agent" do
   jmx do
     port 1234
   end
+
+  rmLib "guava-10.0.1.jar"
 end
 </pre>
 
@@ -117,6 +119,10 @@ Starting with version 1.0.7 of this cookbook, the provider now provides a hook a
 This block enables JMX reporting of the behavior of the agent. It takes the following parameter:
 
 * **port**: The port on which the agent will publish its JMX statistics.
+
+#### rmLib
+
+(since 1.1) Flume plugins do not get loaded in classloaders isolated from the main classpath of the Flume agent; as a result, dependency convergence issues can arise (such as Guava incompatibilities). To help with this, the option is given as part of this cookbook to have it remove libraries from `lib/` directory beneath the Flume installation directory.
 
 ### Registered service
 

@@ -20,6 +20,7 @@ action :create do
   attributes["flumeConfDir"] = "#{attributes["installDir"]}/conf"
   attributes["outputConfigurationFile"] = "#{attributes["flumeConfDir"]}/flume.agent.#{attributes["instanceName"]}.properties"
   attributes["postStartupScript"] = new_resource.agentPostStartupScript
+  attributes["rmLibs"] = new_resource.rmLibs
 
   if !ENV["JAVA_HOME"]
     raise Exception.new("JAVA_HOME environment variable not found - has Java been previously installed?")
@@ -111,6 +112,17 @@ action :create do
     # We're about to deploy a potentially new configuration
     # Flume will attempt to dynamically cycle the agent while we are restarting it, and this can cause issues
     notifies :stop, "service[#{attributes["serviceName"]}]", :immediately
+  end
+
+  attributes["rmLibs"].each do |rmLib|
+    ruby_block "Delete #{rmLib}" do
+      block do
+        fullFilename = "#{attributes["installDir"]}/lib/#{rmLib}"
+        if ::File.exist?(fullFilename) 
+          ::File.delete(fullFilename)
+        end
+      end
+    end
   end
   
   # Make sure the appropriate user owns the Flume installation
