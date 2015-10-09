@@ -132,15 +132,3 @@ With this command, the agent will also install an _/etc/init.d/_ script followin
 * stop
 * restart
 * status
-
-# Building the Project
-
-This project uses Rake (with a minimum of Ruby 2.0) to build the archive that contains the cookbook for distribution. In order to build this cookbook's archive, you must have the following gems installed:
-
-* chef
-
-Additionally, this requires command-line capabilities of building GZipped TAR files. This implies a Linux or Linux-like environment.
-
-To build this using rake, use the following command:
-
-    rake package

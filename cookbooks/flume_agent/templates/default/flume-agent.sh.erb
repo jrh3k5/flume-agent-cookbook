@@ -123,6 +123,12 @@ agentRunning() {
                 echo "PID $pid was found in the PID file, but is not running"
             fi
         done
+
+        if [ ${#pids[@]} -eq 0 ]; then
+            echo "None of the instances in $PID_FILE were found to be running - the listed instances may have been stopped by another script, crashed, or killed"
+            return 3
+        fi
+
         if [ ${#pids[@]} -ne 1 ]; then
             echo "An instance of the Flume agent (see: $PID_FILE) that is not being tracked by this script was found."
             return 4

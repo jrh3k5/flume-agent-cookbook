@@ -30,4 +30,14 @@ describe_recipe "test_flume_consumer::default" do
     # Make sure not EVERYTHING got deleted
     file("/opt/flume/first_agent/lib/metrics-core-3.0.0.jar").must_exist
   end
+
+  it "should report correctly that, if an agent process is dead, then no agents are running" do
+    # Kill the first agent
+    system("sudo kill -9 `ps axf | grep first_agent | grep -v grep | awk '{print $1}'`")
+    system("service flume_first_agent status")
+    exit_status = $?.exitstatus
+    # Start the agent back up to prevent interference with other tests
+    system("service flume_first_agent start")
+    assert(exit_status == 3, "#{exit_status} should be 3")
+  end
 end
