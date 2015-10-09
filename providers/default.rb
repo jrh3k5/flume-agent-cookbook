@@ -174,6 +174,7 @@ action :create do
     mode "0700"
     variables(configFileVars)
     backup false
+    sensitive true
   end
   
   # Install the logging properties (if provided)
