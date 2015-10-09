@@ -3,3 +3,4 @@ pkg
 metadata.json
 .vagrant
 .kitchen
+.DS_Store

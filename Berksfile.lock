@@ -2,16 +2,16 @@ DEPENDENCIES
   flume_agent
     path: .
     metadata: true
-  java (= 1.22.0)
-  minitest-handler (= 0.2.1)
+  java (= 1.35.0)
+  minitest-handler (= 1.4.0)
   test_flume_consumer
-    path: ../test_flume_consumer
+    path: test/cookbooks/test_flume_consumer
 
 GRAPH
   chef_handler (1.2.0)
   flume_agent (1.1.1)
-  java (1.22.0)
-  minitest-handler (0.2.1)
+  java (1.35.0)
+  minitest-handler (1.4.0)
     chef_handler (>= 0.0.0)
   test_flume_consumer (1.0.0)
     flume_agent (~> 1.0)

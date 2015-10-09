@@ -1,0 +1,13 @@
+# Ignore test files
+test
+
+# Don't upload kitchen artifacts
+.kitchen.yml
+.kitchen
+
+# Don't upload OS artifacts
+.DS_Store
+
+# Don't upload git artifacts
+.gitignore
+.git
