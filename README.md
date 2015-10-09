@@ -1,6 +1,10 @@
 # Description
 Provides a mechanism for installing a Flume agent.
 
+# Compatability
+
+As of version 1.2, this has been validated to work on Chef 12.5.1.
+
 # Providers
 
 The following are a list of provided actions supplied by this cookbook.
