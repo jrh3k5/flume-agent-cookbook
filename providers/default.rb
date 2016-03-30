@@ -50,7 +50,7 @@ action :create do
     backup false
   end
 
-  tarUri = node["flume"]["archiveUrl"]
+  tarUri = new_resource.flumeArchiveUrl || node["flume"]["archiveUrl"]
   tarUriPath = URI.parse(tarUri).path.split("/").last
   tarFilename = getNameOfTarFileFromURI(@@VALID_FLUME_URI_REGEX, tarUriPath)
   if !tarFilename

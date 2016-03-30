@@ -13,6 +13,7 @@ actions :create
 attribute :userName,            :kind_of => String
 attribute :userGroup,           :kind_of => String
 attribute :agentName,           :kind_of => String
+attribute :flumeArchiveUrl,     :kind_of => String
 
 attr_reader :agentConfigFile
 attr_reader :flumePlugins
