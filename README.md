@@ -57,6 +57,11 @@ This takes, at a minimum, four parameters:
 * **agentName**: The name of the agent to be installed
 * **configFile**: The configuration file to be used to direct the behavior of the Flume agent. This is described in further detail below.
 
+Optionally, you may also specify the following parameters:
+
+* **flumeArchiveUrl**: The URL link to the Flume binaries used to set up the runtime environment.
+
+
 ### Configuration Providers
 
 Nested within the provider are configuration elements that contain their own parameters.
